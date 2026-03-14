@@ -169,7 +169,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [NAVIGATION] = LAYOUT_ansi_90(
         _______,           KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,  
         KC_NO,    KC_NO,   KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    _______,  KC_NO,    KC_NO,    KC_NO,  
-        KC_NO,    KC_NO,   KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_PGUP,  KC_HOME,  KC_UP,    KC_END,   KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,  
+        _______,  KC_NO,   KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_PGUP,  KC_HOME,  KC_UP,    KC_END,   KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,  
         KC_NO,    _______, _______,  _______,  _______,  KC_NO,    KC_PGDN,  KC_LEFT,  KC_DOWN,  KC_RGHT,  KC_NO,    KC_NO,              KC_NO,    KC_NO,    KC_NO,    KC_NO,  
         _______,           _______,  _______,  _______,  _______,  KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,              KC_NO,              KC_NO,  
         _______,  _______, _______,                                KC_NO,                                  KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO),
