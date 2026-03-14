@@ -68,6 +68,27 @@ ENTRY
 
 done < <(echo "$RAW" | grep 'arm-none-eabi-gcc -c' | sed 's/.*arm-none-eabi-gcc/arm-none-eabi-gcc/')
 
+# Add synthetic entry for keymap.c (QMK #includes it inside keymap_introspection.c,
+# so it never appears as its own compilation unit — IntelliSense needs it explicitly)
+KEYBOARD_SAFE=$(echo "$KEYBOARD" | tr '/' '_')
+INTROSPECTION_CMD=$(echo "$RAW" | grep 'arm-none-eabi-gcc -c' | grep 'keymap_introspection' | sed 's/.*arm-none-eabi-gcc/arm-none-eabi-gcc/' | head -1)
+if [[ -n "$INTROSPECTION_CMD" ]]; then
+    KEYMAP_C="$USERSPACE_DIR/keyboards/$KEYBOARD/keymaps/$KEYMAP/keymap.c"
+    if [[ -f "$KEYMAP_C" ]]; then
+        ESCAPED_CMD=$(echo "$INTROSPECTION_CMD" | sed 's/\\/\\\\/g; s/"/\\"/g')
+        if [[ "$FIRST" != true ]]; then
+            echo "," >> "$OUTPUT"
+        fi
+        cat >> "$OUTPUT" <<ENTRY
+  {
+    "directory": "$FIRMWARE_DIR",
+    "command": "$ESCAPED_CMD",
+    "file": "$KEYMAP_C"
+  }
+ENTRY
+    fi
+fi
+
 echo "]" >> "$OUTPUT"
 
 COUNT=$(grep -c '"file"' "$OUTPUT")

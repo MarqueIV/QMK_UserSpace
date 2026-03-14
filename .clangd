@@ -1,0 +1,10 @@
+CompileFlags:
+  Remove:
+    - -mno-thumb-interwork
+    - -mno-unaligned-access
+    - -fsingle-precision-constant
+    - -fno-builtin-printf
+    - -fshort-wchar
+    - -fcommon
+    - -f
+    - -gt
