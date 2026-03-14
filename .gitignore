@@ -1,0 +1,16 @@
+# Build artifacts
+*.bin
+*.hex
+*.uf2
+
+# QMK build output
+.build/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
