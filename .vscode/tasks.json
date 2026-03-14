@@ -1,0 +1,42 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "QMK Flash",
+            "type": "shell",
+            "command": "${workspaceFolder}/scripts/qmk-build.sh '${relativeFile}' flash",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "focus": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "QMK Compile",
+            "type": "shell",
+            "command": "${workspaceFolder}/scripts/qmk-build.sh '${relativeFile}'",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "QMK Update IntelliSense",
+            "type": "shell",
+            "command": "${workspaceFolder}/scripts/generate-compiledb.sh",
+            "group": "none",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        }
+    ]
+}

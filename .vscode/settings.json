@@ -1,0 +1,8 @@
+{
+    "files.exclude": {
+        "**/.cache": true,
+        "**/.last_build": true,
+        "**/compile_commands.json": true,
+        "**/*.bin": true
+    }
+}

@@ -18,22 +18,10 @@
 #include QMK_KEYBOARD_H
 #include "keychron_common.h"
 #include "host.h"
-#include "marqueiv.h"
-
-// Forward declarations
-void set_kvm(keycode_t keycode);
-
-// Tap dance macro with user_data support
-#define ACTION_TAP_DANCE_FN_USER(user_fn, data) { \
-    .fn        = { NULL, user_fn, NULL, NULL }, \
-    .user_data = (void *)(uintptr_t)(data) \
-}
-
-// Tap dance macro with user_data support
-#define ACTION_TAP_DANCE_FN_USER_EX(user_fn, user_release_fn, data) { \
-    .fn        = { NULL, user_fn, user_release_fn, NULL }, \
-    .user_data = (void *)(uintptr_t)(data) \
-}
+#include "common/common.h"
+#include "common/kvm.h"
+#include "common/tapdance.h"
+#include "common/rgb.h"
 
 // External mousekey variables for runtime speed adjustment (inertia mode)
 extern uint8_t mk_max_speed;
@@ -60,11 +48,8 @@ enum layers {
     QUICK_ACTIONS,
 };
 
-// IMPORTANT!!!
-// Make sure this enum starts on line 63 so the line numbers match the 
-// custom key codes you can use in Keychron Launcher and VIA
 enum custom_keycodes { 
-    KC_BOOTLOADER = SAFE_RANGE,
+    KC_BOOTLOADER = SAFE_RANGE, // Shows up as 64 and up in Launcher/Via
     KC_DISABLE_MOD_SWAP,
     KC_ENABLE_MOD_SWAP,
     KC_TOGGLE_MOD_SWAP,
@@ -74,40 +59,9 @@ enum custom_keycodes {
     KC_MODE_NORMAL,
     KC_MOUSE_SPEED_DOWN,
     KC_MOUSE_SPEED_UP,
-    KC_KVM_PORT1,
-    KC_KVM_PORT2,
-    KC_KVM_PORT3,
-    KC_KVM_PORT4,
-    KC_KVM_MONA_PORT1,
-    KC_KVM_MONA_PORT2,
-    KC_KVM_MONA_PORT3,
-    KC_KVM_MONA_PORT4,
-    KC_KVM_MONB_PORT1,
-    KC_KVM_MONB_PORT2,
-    KC_KVM_MONB_PORT3,
-    KC_KVM_MONB_PORT4,
-    KC_KVM_MONC_PORT1,
-    KC_KVM_MONC_PORT2,
-    KC_KVM_MONC_PORT3,
-    KC_KVM_MONC_PORT4,
     KC_DICT,               // HID Consumer Control 0x0CF - Voice Command
     KC_DICTATION_SESSION,  // HID Consumer Control 0x0D8 - Start/Stop Voice Dictation Session
     KC_DEBUG
-};
-
-// Custom Key Codes
-#define KC_SSHOT     LCTL(LGUI(LALT(LSFT(KC_C))))
-#define KC_DOCK      LCTL(KC_F3)
-#define KC_MENU      LCTL(KC_F2)
-#define KC_STATMENU  LCTL(KC_F8)
-#define KC_ZOOM      LCTL(LGUI(KC_F))
-
-enum mouse_speed_mode {
-    SPEED_SLOWEST,
-    SPEED_SLOWER,
-    SPEED_NORMAL,
-    SPEED_FASTER,
-    SPEED_FASTEST,
 };
 
 // Tap Dance declarations
@@ -119,7 +73,7 @@ enum {
     TD_CREDIT_CARD,
     TD_ADDRESS_FULL,
     TD_ADDRESS_STREET,
-    TD_ADDRESS_STREET2,    
+    TD_ADDRESS_STREET2,
     TD_ADDRESS_CITY,
     TD_ADDRESS_STATE,
     TD_ADDRESS_ZIP,
@@ -130,10 +84,18 @@ enum {
     TD_KVM_PORT4,
 };
 
+enum mouse_speed_mode {
+    SPEED_SLOWEST,
+    SPEED_SLOWER,
+    SPEED_NORMAL,
+    SPEED_FASTER,
+    SPEED_FASTEST,
+};
+
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [DEFAULT] = LAYOUT_ansi_90(       
-        KC_ESC,                         KC_F1,    KC_F2,  KC_MCTL,  KC_ZOOM,  KC_F5,   KC_F6,  KC_SSHOT,  KC_DICT,  KC_F9,              KC_MUTE,  KC_VOLD,          KC_VOLU,  KC_MPRV,           KC_MNXT,           KC_MPLY,
+        KC_ESC,                         KC_F1,    KC_F2,  KC_MCTL,  KCC_FSCRN,  KC_F5,   KC_F6,  KCC_SSHOT,  KC_DICT,  KC_F9,              KC_MUTE,  KC_VOLD,          KC_VOLU,  KC_MPRV,           KC_MNXT,           KC_MPLY,
         KC_GRV,              KC_1,      KC_2,     KC_3,   KC_4,     KC_5,     KC_6,    KC_7,   KC_8,      KC_9,     KC_0,               KC_MINS,  KC_EQL,           KC_BSPC,  KC_INS,            KC_HOME,           KC_PGUP,
         KC_TAB,              KC_Q,      KC_W,     KC_E,   KC_R,     KC_T,     KC_Y,    KC_U,   KC_I,      KC_O,     KC_P,               KC_LBRC,  KC_RBRC,          KC_BSLS,  KC_DEL,            KC_END,            KC_PGDN,
         LT(NUMPAD, KC_CAPS), KC_A,      KC_S,     KC_D,   KC_F,     KC_G,     KC_H,    KC_J,   KC_K,      KC_L,     KC_SCLN,            KC_QUOT,                    KC_ENT,   TD(TD_KVM_PORT1),  TD(TD_KVM_PORT2),  TD(TD_KVM_PORT4),
@@ -256,233 +218,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_TOGGLE_FKEYS,                      DF(0),               DF(1),         DF(2),               DF(3),                KC_NO,                  KC_NO,                   KC_NO,                KC_NO,                 KC_NO,                KC_NO,          KC_NO,  KC_SCROLL_LOCK,      KC_KVM_MONA_PORT1,  KC_KVM_MONB_PORT1,  KC_KVM_MONC_PORT1,
         KC_TOGGLE_BACKLIGHT, TD(TD_USERNAME), TD(TD_EMAIL),        TD(TD_PHONE),  TD(TD_CREDIT_CARD),  TD(TD_ADDRESS_FULL),  TD(TD_ADDRESS_STREET),  TD(TD_ADDRESS_STREET2),  TD(TD_ADDRESS_CITY),  TD(TD_ADDRESS_STATE),  TD(TD_ADDRESS_ZIP),   KC_NO,          KC_NO,  KC_DEL,              KC_KVM_MONA_PORT2,  KC_KVM_MONB_PORT2,  KC_KVM_MONC_PORT2,
         KC_NO,               BT_HST1,         BT_HST2,             BT_HST3,       P2P4G,               KC_NO,                KC_NO,                  KC_NO,                   KC_NO,                KC_NO,                 KC_NO,                KC_NO,          KC_NO,  KC_NO,               KC_KVM_MONA_PORT3,  KC_KVM_MONB_PORT3,  KC_KVM_MONC_PORT3,
-        KC_NO,               KC_NO,           KC_STATMENU,         KC_DOCK,       KC_NO,               KC_NO,                KC_NO,                  KC_NO,                   KC_NO,                KC_NO,                 KC_NO,                KC_NO,                  TD(TD_NAME),         KC_KVM_MONA_PORT4,  KC_KVM_MONB_PORT4,  KC_KVM_MONC_PORT4,
-        KC_NO,                                KC_NO,               KC_NO,         KC_NO,               KC_NO,                BAT_LVL,                KC_NO,                   KC_MENU,              KC_NO,                 KC_NO,                KC_NO,                  TG(NUMPAD),                              KC_NO,
+        KC_NO,               KC_NO,           KCC_SYSMENU,         KCC_DOCK,       KC_NO,               KC_NO,                KC_NO,                  KC_NO,                   KC_NO,                KC_NO,                 KC_NO,                KC_NO,                  TD(TD_NAME),         KC_KVM_MONA_PORT4,  KC_KVM_MONB_PORT4,  KC_KVM_MONC_PORT4,
+        KC_NO,                                KC_NO,               KC_NO,         KC_NO,               KC_NO,                BAT_LVL,                KC_NO,                   KCC_MENU,              KC_NO,                 KC_NO,                KC_NO,                  TG(NUMPAD),                              KC_NO,
         KC_TOGGLE_MOD_SWAP,  KC_NO,           KC_TOGGLE_MOD_SWAP,                                                            TD(TD_PASSWORD),                                                                              _______,              KC_BOOTLOADER,  KC_NO,  KC_TOGGLE_MOD_SWAP,  KC_NO,              KC_NO,              KC_NO)
 };
 // clang-format on
-
-// Tap Dance state tracking
-typedef struct {
-    bool is_press_action;
-    int state;
-} tap;
-
-enum {
-    SINGLE_TAP = 1,
-    SINGLE_HOLD,
-    DOUBLE_TAP,
-    DOUBLE_HOLD,
-};
-
-// Generic tap dance state determination
-int get_tapdance_value(tap_dance_state_t *state) {
-    if (state->count == 1) {
-        if (state->interrupted || !state->pressed) return SINGLE_TAP;
-        else return SINGLE_HOLD;
-    } else if (state->count == 2) {
-        if (state->interrupted || !state->pressed) return DOUBLE_TAP;
-        else return DOUBLE_HOLD;
-    }
-    return 0;
-}
-
-// Tapdance Functions
-void password_tapdance(tap_dance_state_t *state, void *user_data) {
-
-    switch (get_tapdance_value(state)) {
-
-        case SINGLE_TAP:
-            SEND_STRING("mad8448\n");
-            break;
-
-        case SINGLE_HOLD:
-            SEND_STRING("Mad6275!\n");
-            break;
-
-        case DOUBLE_TAP:
-            SEND_STRING("Aapl1357911!\n");
-            break;
-    }
-}
-
-void username_tapdance(tap_dance_state_t *state, void *user_data) {
-
-    switch (get_tapdance_value(state)) {
-
-        case SINGLE_TAP:
-            SEND_STRING("MarqueIV");
-            break;
-
-        case SINGLE_HOLD:
-            SEND_STRING("marqueiv");
-            break;
-
-        case DOUBLE_TAP:
-            SEND_STRING("mark_donohoe");
-            break;
-    }
-}
-
-void email_tapdance(tap_dance_state_t *state, void *user_data) {
-
-    switch (get_tapdance_value(state)) {
-
-        case SINGLE_TAP:
-            SEND_STRING("Mark@MarkDonohoe.com");
-            break;
-
-        case SINGLE_HOLD:
-            SEND_STRING("mark@markdonohoe.com");
-            break;
-
-        case DOUBLE_TAP:
-            SEND_STRING("MarqueIV@Gmail.com");
-            break;
-        
-        case DOUBLE_HOLD:
-            SEND_STRING("Mark.Donohoe@Apple.com");
-            break;
-    }
-}
-
-void phone_tapdance(tap_dance_state_t *state, void *user_data) {
-
-    switch (get_tapdance_value(state)) {
-
-        case SINGLE_TAP:
-            SEND_STRING("(973) 420-6275");
-            break;
-
-        case SINGLE_HOLD:
-            SEND_STRING("9734206275");
-            break;
-            
-        case DOUBLE_TAP:
-            SEND_STRING("(234) 248-6275");
-            break;
-
-        case DOUBLE_HOLD:
-            SEND_STRING("2342486275");
-            break;
-    }
-}
-
-void credit_card_tapdance(tap_dance_state_t *state, void *user_data) {
-
-    switch (get_tapdance_value(state)) {
-
-        case SINGLE_TAP:
-            SEND_STRING("6011-2089-0897-4937");
-            break;
-
-        case SINGLE_HOLD:
-            SEND_STRING("6011208908974937");
-            break;
-    }
-}
-
-void address_full_tapdance(tap_dance_state_t *state, void *user_data) {
-
-    switch (get_tapdance_value(state)) {
-
-        case SINGLE_TAP:
-            SEND_STRING("42-12 28th Street\nUnit 8C\nLong Island City, NY 11101\n");
-            break;
-
-        case SINGLE_HOLD:
-            SEND_STRING("42-12 28th Street Unit 8C, Long Island City, NY 11101");
-            break;
-        
-        case DOUBLE_TAP:
-            SEND_STRING("Mark A. Donohoe\n42-12 28th Street\nUnit 8C\nLong Island City, NY 11101-5391\nMark@MarkDonohoe.com\n(973) 420-6275\n");
-            break;
-
-        case DOUBLE_HOLD:
-            SEND_STRING("Mark A. Donohoe\n42-12 28th Street\nUnit 8C\nLong Island City, NY 11101-5391\nMark@MarkDonohoe.com\nMarqueIV@Gmail.com\n(973) 420-6275 - Cell\n(234) 248-6275 - Google Voice\n");
-            break;
-    }
-}
-
-void address_street_tapdance(tap_dance_state_t *state, void *user_data) {
-
-    switch (get_tapdance_value(state)) {
-
-        case SINGLE_TAP:
-            SEND_STRING("42-12 28th Street");
-            break;
-
-        case SINGLE_HOLD:
-            SEND_STRING("42-12 28th Street Unit 8C");
-            break;
-    }
-}
-
-void address_street2_tapdance(tap_dance_state_t *state, void *user_data) {
-
-    switch (get_tapdance_value(state)) {
-
-        case SINGLE_TAP:
-            SEND_STRING("Unit 8C");
-            break;
-    }
-}
-
-void address_city_tapdance(tap_dance_state_t *state, void *user_data) {
-
-    switch (get_tapdance_value(state)) {
-
-        case SINGLE_TAP:
-            SEND_STRING("Long Island City");
-            break;
-
-        case SINGLE_HOLD:
-            SEND_STRING("Long Island City, NY 11101");
-            break;
-    }
-}
-
-void address_state_tapdance(tap_dance_state_t *state, void *user_data) {
-
-    switch (get_tapdance_value(state)) {
-
-        case SINGLE_TAP:
-            SEND_STRING("NY");
-            break;
-
-        case SINGLE_HOLD:
-            SEND_STRING("New York");
-            break;
-    }
-}
-
-void address_zip_tapdance(tap_dance_state_t *state, void *user_data) {
-
-    switch (get_tapdance_value(state)) {
-
-        case SINGLE_TAP:
-            SEND_STRING("11101");
-            break;
-
-        case SINGLE_HOLD:
-            SEND_STRING("11101-5391");
-            break;
-    }
-}
-
-void name_tapdance(tap_dance_state_t *state, void *user_data) {
-
-    switch (get_tapdance_value(state)) {
-
-        case SINGLE_TAP:
-            SEND_STRING("Mark A. Donohoe");
-            break;
-
-        case SINGLE_HOLD:
-            SEND_STRING("Mark Andrew Donohoe");
-            break;
-    }
-}
 
 void kvm_tapdance(tap_dance_state_t *state, void *user_data) {
 
@@ -626,7 +366,7 @@ layer_state_t layer_state_set_user(layer_state_t state) {
 
 void matrix_scan_user(void) {
 
-    if (bootloader_key_pressed && timer_elapsed(bootloader_timer) >= 600) {
+    if (bootloader_key_pressed && timer_elapsed(bootloader_timer) >= 400) {
         reset_keyboard();
     }
 
@@ -646,168 +386,6 @@ void matrix_scan_user(void) {
 
         layer_off(MOUSE);
         mouse_inactivity_timer = 0;
-    }
-}
-
-bool rgb_color_layer_keys(uint8_t layer, uint8_t red, uint8_t green, uint8_t blue) {
-
-    // Check if the layer is active or the default layer
-    layer_state_t layerMask = ((layer_state_t)1 << layer);
-    bool is_active = (layer == 0) || ((layer_state | default_layer_state) & layerMask) == layerMask;
-    if(!is_active) return false;
-
-    // Then light up only the mapped keys
-    for (uint8_t row = 0; row < MATRIX_ROWS; row++)
-    for (uint8_t col = 0; col < MATRIX_COLS; col++) {
-
-        uint8_t led_index = g_led_config.matrix_co[row][col];
-        if(led_index == NO_LED)
-            continue;
-
-        keycode_t keycode = keymap_key_to_keycode(layer, (keypos_t){col, row});
-
-        switch (keycode) {
-
-            case KC_TRNS:
-                continue;
-            
-            case KC_NO: 
-                rgb_matrix_set_color(led_index, RGB_BLACK);
-                break;
-
-            default:
-                rgb_matrix_set_color(led_index, red, green, blue);
-                break;
-        }
-    }
-
-    return true;
-}
-
-bool rgb_matrix_indicators_user(void) {
-
-    rgb_matrix_set_color_all(RGB_BLACK);
-
-    if(layer_state_is(SET_KVM_KEY)) {
-        rgb_color_layer_keys(SET_KVM_KEY, RGB_WHITE);
-        return true;
-    }
-
-    rgb_color_layer_keys(DEFAULT,        RGB_WHITE  );
-    rgb_color_layer_keys(HOME_ROW_MODS,  RGB_WHITE  );
-    rgb_color_layer_keys(LAYOUT_60,      RGB_WHITE  );
-    rgb_color_layer_keys(LAYOUT_40,      RGB_WHITE  );
-
-    // If backlight is off, set all keys to black first
-    if (user_config.backlight_off)
-        rgb_matrix_set_color_all(RGB_BLACK);
-
-    // Caps Lock indicator - set caps lock key to red when active (overrides backlight off)
-    if (host_keyboard_led_state().caps_lock) {
-        // Caps Lock is at matrix position [3, 0]
-        ledindex_t led_index = g_led_config.matrix_co[3][0];
-        if (led_index != NO_LED)
-            rgb_matrix_set_color(led_index, RGB_RED);
-    }
-
-    rgb_color_layer_keys(NUM_ROW_OVERLAY, RGB_BLUE   );
-    rgb_color_layer_keys(MOD_SWAP,        RGB_BLUE   );
-    rgb_color_layer_keys(ZOOM,            RGB_BLUE   );
-    rgb_color_layer_keys(NUMPAD,          RGB_YELLOW );    
-    rgb_color_layer_keys(FKEYS,           RGB_BLUE   );
-    rgb_color_layer_keys(NAVIGATION,      RGB_GREEN  );
-    rgb_color_layer_keys(MOUSE,           RGB_GREEN  );    
-    rgb_color_layer_keys(MOUSE_SCROLL,    RGB_YELLOW );
-    rgb_color_layer_keys(CUSTOM_1,        RGB_YELLOW );    
-    rgb_color_layer_keys(CUSTOM_2,        RGB_YELLOW );            
-    rgb_color_layer_keys(QUICK_ACTIONS,   RGB_CYAN   );
-
-    // MOUSE layer additions
-    if (layer_state_is(MOUSE)) {
-
-        // Show current speed on number keys 1-5 (row 1, columns 1-5)
-        // Keys: 1=SLOWEST, 2=SLOWER, 3=NORMAL, 4=FASTER, 5=FASTEST
-        uint8_t speed_key_col = 0;
-        switch (mouse_speed_mode) {
-            case SPEED_SLOWEST: speed_key_col = 1; break;
-            case SPEED_SLOWER:  speed_key_col = 2; break;
-            case SPEED_NORMAL:  speed_key_col = 3; break;
-            case SPEED_FASTER:  speed_key_col = 4; break;
-            case SPEED_FASTEST: speed_key_col = 5; break;
-        }
-
-        ledindex_t speed_led = g_led_config.matrix_co[1][speed_key_col];
-        if (speed_led != NO_LED) {
-            // Green if any mouse activity, yellow if idle
-            if (mouse_activity)
-                rgb_matrix_set_color(speed_led, RGB_YELLOW);
-            else
-                rgb_matrix_set_color(speed_led, RGB_RED);
-        }
-    }
-    
-    if (layer_state_is(QUICK_ACTIONS)) {
-        // Highlight the default layer in red
-        uint8_t default_layer = get_highest_layer(default_layer_state);
-        ledindex_t default_layer_led = g_led_config.matrix_co[0][default_layer + 2];
-        rgb_matrix_set_color(default_layer_led, RGB_RED);
-    }
-
-    return true;
-}
-
-void set_kvm(keycode_t keycode) {
-    
-    uint16_t delay = 50;
-    keycode_t KC_KVM_ACTION = KC_LEFT_CTRL;
-
-    // KVM Trigger
-    tap_code_delay(KC_KVM_ACTION, delay);
-    wait_ms(delay);
-    tap_code_delay(KC_KVM_ACTION, delay);
-    wait_ms(delay);
-
-    // Monitor-specific, if appropriate
-    switch(keycode) {
-        
-        case KC_KVM_MONA_PORT1:
-        case KC_KVM_MONA_PORT2:
-        case KC_KVM_MONA_PORT3:
-        case KC_KVM_MONA_PORT4: tap_code_delay(KC_LEFT, delay); break;
-        
-        case KC_KVM_MONB_PORT1:
-        case KC_KVM_MONB_PORT2:
-        case KC_KVM_MONB_PORT3:
-        case KC_KVM_MONB_PORT4: tap_code_delay(KC_DOWN, delay); break;
-        
-        case KC_KVM_MONC_PORT1:
-        case KC_KVM_MONC_PORT2:
-        case KC_KVM_MONC_PORT3:
-        case KC_KVM_MONC_PORT4: tap_code_delay(KC_RIGHT, delay); break;
-    }
-
-    // Port-specific
-    switch(keycode) {
-        
-        case KC_KVM_PORT1:
-        case KC_KVM_MONA_PORT1:
-        case KC_KVM_MONB_PORT1:
-        case KC_KVM_MONC_PORT1: tap_code_delay(KC_1, delay); break;
-        
-        case KC_KVM_PORT2:
-        case KC_KVM_MONA_PORT2:
-        case KC_KVM_MONB_PORT2:
-        case KC_KVM_MONC_PORT2: tap_code_delay(KC_2, delay); break;
-    
-        case KC_KVM_PORT3:
-        case KC_KVM_MONA_PORT3:
-        case KC_KVM_MONB_PORT3:
-        case KC_KVM_MONC_PORT3: tap_code_delay(KC_3, delay); break;
-
-        case KC_KVM_PORT4:
-        case KC_KVM_MONA_PORT4:
-        case KC_KVM_MONB_PORT4:
-        case KC_KVM_MONC_PORT4: tap_code_delay(KC_4, delay); break;
     }
 }
 
@@ -1058,6 +636,73 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
     if (!process_record_keychron_common(keycode, record)) {
         return false;
+    }
+
+    return true;
+}
+
+bool rgb_matrix_indicators_user(void) {
+
+    rgb_matrix_set_color_all(RGB_BLACK);
+
+    if(layer_state_is(SET_KVM_KEY)) {
+        rgb_color_layer_keys(SET_KVM_KEY, RGB_WHITE);
+        return true;
+    }
+
+    // If backlight is not off, colorize main layers
+    if (!user_config.backlight_off) {
+        rgb_color_layer_keys(DEFAULT,       RGB_WHITE);
+        rgb_color_layer_keys(HOME_ROW_MODS, RGB_WHITE);
+        rgb_color_layer_keys(LAYOUT_60,     RGB_WHITE);
+        rgb_color_layer_keys(LAYOUT_40,     RGB_WHITE);
+    }
+
+    // Caps Lock indicator - set caps lock key to red when active (overrides backlight off)
+    if (host_keyboard_led_state().caps_lock) {
+        rgb_color_keycode(KC_CAPS, RGB_RED);
+    }
+
+    rgb_color_layer_keys(NUM_ROW_OVERLAY, RGB_BLUE   );
+    rgb_color_layer_keys(MOD_SWAP,        RGB_BLUE   );
+    rgb_color_layer_keys(ZOOM,            RGB_BLUE   );
+    rgb_color_layer_keys(NUMPAD,          RGB_YELLOW );    
+    rgb_color_layer_keys(FKEYS,           RGB_BLUE   );
+    rgb_color_layer_keys(NAVIGATION,      RGB_GREEN  );
+    rgb_color_layer_keys(MOUSE,           RGB_GREEN  );    
+    rgb_color_layer_keys(MOUSE_SCROLL,    RGB_YELLOW );
+    rgb_color_layer_keys(CUSTOM_1,        RGB_YELLOW );    
+    rgb_color_layer_keys(CUSTOM_2,        RGB_YELLOW );            
+    rgb_color_layer_keys(QUICK_ACTIONS,   RGB_CYAN   );
+
+    // MOUSE layer additions
+    if (layer_state_is(MOUSE)) {
+
+        // Show current speed on number keys 1-5 (row 1, columns 1-5)
+        // Keys: 1=SLOWEST, 2=SLOWER, 3=NORMAL, 4=FASTER, 5=FASTEST
+        uint8_t speed_key_col = 0;
+        switch (mouse_speed_mode) {
+            case SPEED_SLOWEST: speed_key_col = 1; break;
+            case SPEED_SLOWER:  speed_key_col = 2; break;
+            case SPEED_NORMAL:  speed_key_col = 3; break;
+            case SPEED_FASTER:  speed_key_col = 4; break;
+            case SPEED_FASTEST: speed_key_col = 5; break;
+        }
+
+        ledindex_t speed_led = g_led_config.matrix_co[1][speed_key_col];
+        if (speed_led != NO_LED) {
+            // Green if any mouse activity, yellow if idle
+            if (mouse_activity)
+                rgb_matrix_set_color(speed_led, RGB_YELLOW);
+            else
+                rgb_matrix_set_color(speed_led, RGB_RED);
+        }
+    }
+    
+    if (layer_state_is(QUICK_ACTIONS)) { // then highlight the current default layer in red
+        layer_t default_layer = get_highest_layer(default_layer_state);
+        ledindex_t default_layer_led = g_led_config.matrix_co[0][default_layer + 2];
+        rgb_matrix_set_color(default_layer_led, RGB_RED);
     }
 
     return true;

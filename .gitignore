@@ -5,6 +5,11 @@
 
 # QMK build output
 .build/
+.cache/
+.last_build
+
+# Generated IntelliSense database
+compile_commands.json
 
 # OS files
 .DS_Store
