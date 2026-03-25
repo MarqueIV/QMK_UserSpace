@@ -1,5 +1,21 @@
 #include "rgb.h"
 
+void rgb_color_blink(uint8_t red, uint8_t green, uint8_t blue, uint8_t count, uint16_t on_duration, uint16_t off_duration){
+
+    for(uint8_t i = 0; i < count; i++) {
+
+        rgb_matrix_set_color_all(red, green, blue);
+        snled27351_flush();
+        wait_ms(on_duration);
+
+        if(off_duration) {
+            rgb_matrix_set_color_all(RGB_BLACK);
+            snled27351_flush();
+            wait_ms(off_duration);
+        }
+    }
+}
+
 bool rgb_color_layer_keys(layer_t layer, uint8_t red, uint8_t green, uint8_t blue) {
 
     // Check if the layer is active or the default layer
