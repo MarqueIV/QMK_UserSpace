@@ -1,10 +1,10 @@
 #include "kvm.h"
 
-keycode_t KC_KVM_ACTION_KEY = KC_LEFT_CTRL;
+keycode_t KC_KVM_ACTION_KEY = 0;
 
 void set_kvm(keycode_t keycode) {
 
-    uint16_t delay = 50;
+    uint16_t delay = 60;
 
     // KVM Trigger
     tap_code_delay(KC_KVM_ACTION_KEY, delay);

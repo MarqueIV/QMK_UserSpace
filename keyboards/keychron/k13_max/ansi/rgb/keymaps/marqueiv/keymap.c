@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "color.h"
 #include <stdint.h>
 #include QMK_KEYBOARD_H
 #include "keychron_common.h"
@@ -34,7 +35,7 @@ enum layers {
     HOME_ROW_MODS,
     LAYOUT_60,
     LAYOUT_40,
-    NUM_ROW_OVERLAY,
+    LAYOUT_40_SYMBOLS,
     MOD_SWAP,
     ZOOM,
     NUMPAD,
@@ -61,6 +62,8 @@ enum custom_keycodes {
     KC_MOUSE_SPEED_UP,
     KC_DICT,               // HID Consumer Control 0x0CF - Voice Command
     KC_DICTATION_SESSION,  // HID Consumer Control 0x0D8 - Start/Stop Voice Dictation Session
+    KC_TOGGLE_NUMPAD,
+    KC_RESET_USER_CONFIG,
     KC_DEBUG
 };
 
@@ -124,14 +127,14 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_ESC,   _______,            _______,             _______,             _______,             _______,  _______,                 _______,             _______,             _______,             _______,                _______,              _______,  KC_BSPC,  KC_NO,    KC_NO,    KC_NO,
         KC_TAB,  MT(MOD_LSFT, KC_A),  MT(MOD_LCTL, KC_S),  MT(MOD_LALT, KC_D),  MT(MOD_LGUI, KC_F),  _______,  _______,                 MT(MOD_RGUI, KC_J),  MT(MOD_RALT, KC_K),  MT(MOD_RCTL, KC_L),  MT(MOD_RSFT, KC_SCLN),  _______,                        _______,  _______,  _______,  _______,
         _______,                      _______,             _______,             _______,             _______,  _______,                 _______,             _______,             _______,             _______,                _______,                        _______,            KC_NO,
-        _______,  _______,            _______,                                                                 LT(NAVIGATION, KC_SPC),                                                                 _______,                MO(NUM_ROW_OVERLAY),  _______,  _______,  KC_NO,    KC_NO,    KC_NO),
+        _______,  _______,            _______,                                                                 LT(NAVIGATION, KC_SPC),                                                                 _______,                MO(LAYOUT_40_SYMBOLS),  _______,  _______,  KC_NO,    KC_NO,    KC_NO),
 
-    [NUM_ROW_OVERLAY] = LAYOUT_ansi_90(
+    [LAYOUT_40_SYMBOLS] = LAYOUT_ansi_90(
         _______,            _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,
         _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,
         KC_GRV,   KC_1,     KC_2,     KC_3,     KC_4,     KC_5,     KC_6,     KC_7,     KC_8,     KC_9,     KC_0,     KC_MINS,  KC_EQL,   KC_BSLS,  _______,  _______,  _______,
-        KC_CAPS,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,            _______,  _______,  _______,  _______,
-        _______,            _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,            _______,            _______,
+        S(KC_GRV),  S(KC_1),  S(KC_2),  S(KC_3),  S(KC_4),  S(KC_5),  S(KC_6),  S(KC_7),  S(KC_8),  S(KC_9),  S(KC_0),  S(KC_MINS),       S(KC_EQL),  _______,  _______,  _______,
+        _______,              _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,            _______,            _______,
         _______,  _______,  _______,                                _______,                                _______,  _______,  _______,  _______,  _______,  _______,  _______),
 
     [MOD_SWAP] = LAYOUT_ansi_90(
@@ -169,8 +172,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [NAVIGATION] = LAYOUT_ansi_90(
         _______,           KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,  
         KC_NO,    KC_NO,   KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    _______,  KC_NO,    KC_NO,    KC_NO,  
-        _______,  KC_NO,   KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_PGUP,  KC_HOME,  KC_UP,    KC_END,   KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,  
-        KC_NO,    _______, _______,  _______,  _______,  KC_NO,    KC_PGDN,  KC_LEFT,  KC_DOWN,  KC_RGHT,  KC_NO,    KC_NO,              KC_NO,    KC_NO,    KC_NO,    KC_NO,  
+        _______,  KC_NO,   KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,  KC_PGUP,  KC_UP,    KC_PGDN,   KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,  
+        KC_NO,    _______, _______,  _______,  _______,  KC_NO,    KC_HOME,  KC_LEFT,  KC_DOWN,  KC_RGHT,  KC_END,    KC_NO,              KC_NO,    KC_NO,    KC_NO,    KC_NO,  
         _______,           _______,  _______,  _______,  _______,  KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,              KC_NO,              KC_NO,  
         _______,  _______, _______,                                KC_NO,                                  KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO),
 
@@ -219,7 +222,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_TOGGLE_BACKLIGHT, TD(TD_USERNAME), TD(TD_EMAIL),        TD(TD_PHONE),  TD(TD_CREDIT_CARD),  TD(TD_ADDRESS_FULL),  TD(TD_ADDRESS_STREET),  TD(TD_ADDRESS_STREET2),  TD(TD_ADDRESS_CITY),  TD(TD_ADDRESS_STATE),  TD(TD_ADDRESS_ZIP),   KC_NO,          KC_NO,  KC_DEL,              KC_KVM_MONA_PORT2,  KC_KVM_MONB_PORT2,  KC_KVM_MONC_PORT2,
         KC_NO,               BT_HST1,         BT_HST2,             BT_HST3,       P2P4G,               KC_NO,                KC_NO,                  KC_NO,                   KC_NO,                KC_NO,                 KC_NO,                KC_NO,          KC_NO,  KC_NO,               KC_KVM_MONA_PORT3,  KC_KVM_MONB_PORT3,  KC_KVM_MONC_PORT3,
         KC_NO,               KC_NO,           KCC_SYSMENU,         KCC_DOCK,       KC_NO,               KC_NO,                KC_NO,                  KC_NO,                   KC_NO,                KC_NO,                 KC_NO,                KC_NO,                  TD(TD_NAME),         KC_KVM_MONA_PORT4,  KC_KVM_MONB_PORT4,  KC_KVM_MONC_PORT4,
-        KC_NO,                                KC_NO,               KC_NO,         KC_NO,               KC_NO,                BAT_LVL,                KC_NO,                   KCC_MENU,              KC_NO,                 KC_NO,                KC_NO,                  TG(NUMPAD),                              KC_NO,
+        KC_NO,                                KC_NO,               KC_RESET_USER_CONFIG,         KC_NO,               KC_NO,                BAT_LVL,                KC_NO,                   KCC_MENU,              KC_NO,                 KC_NO,                KC_NO,                  KC_TOGGLE_NUMPAD,                              KC_NO,
         KC_TOGGLE_MOD_SWAP,  KC_NO,           KC_TOGGLE_MOD_SWAP,                                                            TD(TD_PASSWORD),                                                                              _______,              KC_BOOTLOADER,  KC_NO,  KC_TOGGLE_MOD_SWAP,  KC_NO,              KC_NO,              KC_NO)
 };
 // clang-format on
@@ -291,17 +294,45 @@ static uint16_t mouse_inactivity_timer = 0;
 static uint16_t bootloader_timer      = 0;
 static bool     bootloader_key_pressed = false;
 
-// EEPROM storage for MOD_SWAP state, backlight state, and fkeys state
+// EEPROM storage for persistent user settings
 typedef union {
     uint32_t raw;
     struct {
-        bool mod_swap_enabled :1;
-        bool backlight_off    :1;
-        bool fkeys_enabled    :1;
+        bool     backlight_off    :1;
+        bool     mod_swap_enabled :1;
+        bool     fkeys_enabled    :1;
+        bool     numpad_enabled   :1;
+        uint16_t kvm_action_key   :16;
     };
 } user_config_t;
 
 user_config_t user_config;
+bool numpad_locked = false;
+
+void load_user_config(void) {
+
+    user_config.raw = eeconfig_read_user();
+
+    if (user_config.mod_swap_enabled) layer_on(MOD_SWAP); else layer_off(MOD_SWAP);
+    if (user_config.fkeys_enabled)    layer_on(FKEYS);   else layer_off(FKEYS);
+
+    numpad_locked = user_config.numpad_enabled;
+    if (numpad_locked) layer_on(NUMPAD); else layer_off(NUMPAD);
+
+    KC_KVM_ACTION_KEY = user_config.kvm_action_key
+        ? user_config.kvm_action_key
+        : KC_LEFT_CTRL;
+}
+
+void save_user_config(void) {
+
+    user_config.mod_swap_enabled = layer_state_is(MOD_SWAP);
+    user_config.fkeys_enabled    = layer_state_is(FKEYS);
+    user_config.numpad_enabled   = numpad_locked;
+    user_config.kvm_action_key   = KC_KVM_ACTION_KEY;
+
+    eeconfig_update_user(user_config.raw);
+}
 
 void apply_mouse_speed(enum mouse_speed_mode speed) {
 
@@ -346,17 +377,23 @@ void apply_mouse_speed(enum mouse_speed_mode speed) {
 
 void keyboard_post_init_user(void) {
 
-    // Read user config from EEPROM
-    user_config.raw = eeconfig_read_user();
-
-    if (user_config.mod_swap_enabled) layer_on(MOD_SWAP);
-    if (user_config.fkeys_enabled)    layer_on(FKEYS);
+    load_user_config();
 
     // Initialize mouse speed to normal
     apply_mouse_speed(SPEED_NORMAL);
 }
 
+void eeconfig_init_user(void) {
+    load_user_config();
+    rgb_color_blink(RGB_GREEN, 1, 1000, 0);
+}
+
 layer_state_t layer_state_set_user(layer_state_t state) {
+
+    if (numpad_locked && !layer_state_cmp(state, NUMPAD)) {
+        numpad_locked = false;
+        save_user_config();
+    }
 
     if (layer_state_cmp(state, MOUSE))
         mouse_inactivity_timer = timer_read();
@@ -364,10 +401,19 @@ layer_state_t layer_state_set_user(layer_state_t state) {
     return state;
 }
 
+void enter_bootloader(void) {
+
+    eeconfig_init();
+    reset_keyboard();
+}
+
 void matrix_scan_user(void) {
 
     if (bootloader_key_pressed && timer_elapsed(bootloader_timer) >= 400) {
-        reset_keyboard();
+        bootloader_key_pressed = false;
+        bootloader_timer = 0;
+        enter_bootloader();
+        return;
     }
 
     // Keep mouse layer on while toggle key is held
@@ -390,6 +436,13 @@ void matrix_scan_user(void) {
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+
+    // If the SET_KVM_KEY layer is active, set the key
+    if(layer_state_is(SET_KVM_KEY) && record->event.pressed) {
+        KC_KVM_ACTION_KEY = keycode;
+        save_user_config();
+        return true;
+    }
 
     if (record->event.pressed) {
 
@@ -434,7 +487,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             if (record->event.pressed) {
                 layer_off(MOUSE);
                 layer_off(NUMPAD);
+                numpad_locked = false;
                 mouse_inactivity_timer = 0;
+                save_user_config();
             }
 
             return false;
@@ -443,8 +498,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
             if (record->event.pressed) {
                 layer_off(MOD_SWAP);
-                user_config.mod_swap_enabled = false;
-                eeconfig_update_user(user_config.raw);
+                save_user_config();
             }
 
             return false;
@@ -453,8 +507,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
             if (record->event.pressed) {
                 layer_on(MOD_SWAP);
-                user_config.mod_swap_enabled = true;
-                eeconfig_update_user(user_config.raw);
+                save_user_config();
             }
 
             return false;
@@ -465,13 +518,18 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
                 if (layer_state_is(MOD_SWAP)) {
                     layer_off(MOD_SWAP);
-                    user_config.mod_swap_enabled = false;
                 } else {
                     layer_on(MOD_SWAP);
-                    user_config.mod_swap_enabled = true;
                 }
 
-                eeconfig_update_user(user_config.raw);
+                save_user_config();
+            }
+            return false;
+
+        case KC_RESET_USER_CONFIG:
+            if (record->event.pressed) {
+                rgb_color_blink(RGB_RED, 2, 250, 150);
+                eeconfig_init();
             }
             return false;
 
@@ -489,7 +547,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
             if (record->event.pressed) {
                 user_config.backlight_off = !user_config.backlight_off;
-                eeconfig_update_user(user_config.raw);
+                save_user_config();
             }
 
             return false;
@@ -500,12 +558,25 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
                 if (layer_state_is(FKEYS)) {
                     layer_off(FKEYS);
-                    user_config.fkeys_enabled = false;
                 } else {
                     layer_on(FKEYS);
-                    user_config.fkeys_enabled = true;
                 }
-                eeconfig_update_user(user_config.raw);
+                save_user_config();
+            }
+
+            return false;
+
+        case KC_TOGGLE_NUMPAD:
+
+            if (record->event.pressed) {
+
+                numpad_locked = !numpad_locked;
+                if (numpad_locked) {
+                    layer_on(NUMPAD);
+                } else {
+                    layer_off(NUMPAD);
+                }
+                save_user_config();
             }
 
             return false;
@@ -647,6 +718,7 @@ bool rgb_matrix_indicators_user(void) {
 
     if(layer_state_is(SET_KVM_KEY)) {
         rgb_color_layer_keys(SET_KVM_KEY, RGB_WHITE);
+        rgb_color_keycode(KC_KVM_ACTION_KEY, RGB_RED);
         return true;
     }
 
@@ -663,7 +735,7 @@ bool rgb_matrix_indicators_user(void) {
         rgb_color_keycode(KC_CAPS, RGB_RED);
     }
 
-    rgb_color_layer_keys(NUM_ROW_OVERLAY, RGB_BLUE   );
+    rgb_color_layer_keys(LAYOUT_40_SYMBOLS, RGB_BLUE   );
     rgb_color_layer_keys(MOD_SWAP,        RGB_BLUE   );
     rgb_color_layer_keys(ZOOM,            RGB_BLUE   );
     rgb_color_layer_keys(NUMPAD,          RGB_YELLOW );    
